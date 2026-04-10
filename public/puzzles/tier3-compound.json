@@ -1,0 +1,272 @@
+[
+  {
+    "id": "t3-csv-filter-lookup",
+    "tier": 3,
+    "title": "CSV → Filter → Lookup Dict",
+    "domain_context": "Building an id→name index of users from a single region",
+    "prompt": "Read '/tmp/pp/p3_1_users.csv' with csv.DictReader, filter rows where region == target_region, and build a dict mapping id to name. Assign to `result`.",
+    "given_code": "import csv\nimport os\nos.makedirs('/tmp/pp', exist_ok=True)\nwith open('/tmp/pp/p3_1_users.csv', 'w', newline='') as f:\n    w = csv.writer(f)\n    w.writerow(['id', 'name', 'region'])\n    w.writerow(['1', 'alice', 'us-east'])\n    w.writerow(['2', 'bob', 'eu-west'])\n    w.writerow(['3', 'charlie', 'us-east'])\n    w.writerow(['4', 'dave', 'eu-west'])",
+    "given_variables": "target_region = 'us-east'",
+    "expected_output": "{\"1\": \"alice\", \"3\": \"charlie\"}",
+    "expected_output_type": "dict",
+    "hints": [
+      "Open the file and wrap it in csv.DictReader.",
+      "Filter rows with a comprehension: r['region'] == target_region.",
+      "Build the lookup as a dict comprehension over the filtered rows."
+    ],
+    "tags": ["csv", "filter", "dict-comprehension"],
+    "solution": "with open('/tmp/pp/p3_1_users.csv') as f:\n    rows = list(csv.DictReader(f))\nresult = {r['id']: r['name'] for r in rows if r['region'] == target_region}"
+  },
+  {
+    "id": "t3-glob-read-aggregate",
+    "tier": 3,
+    "title": "Glob → Read → Aggregate",
+    "domain_context": "Counting lines across every log file in a directory",
+    "prompt": "Glob '/tmp/pp/p3_2_logs/*.log', read each file, and build a dict mapping filename to line count. Assign the dict to `result`.",
+    "given_code": "import os\nfrom pathlib import Path\nos.makedirs('/tmp/pp/p3_2_logs', exist_ok=True)\nopen('/tmp/pp/p3_2_logs/app.log', 'w').write('a\\nb\\nc\\n')\nopen('/tmp/pp/p3_2_logs/audit.log', 'w').write('x\\ny\\n')\nopen('/tmp/pp/p3_2_logs/raw.txt', 'w').write('ignore me\\n')",
+    "given_variables": "",
+    "expected_output": "{\"app.log\": 3, \"audit.log\": 2}",
+    "expected_output_type": "dict",
+    "hints": [
+      "Path(dir).glob('*.log') yields matching paths.",
+      "p.read_text().splitlines() gives you the list of lines.",
+      "Build result as a dict comprehension keyed by p.name."
+    ],
+    "tags": ["pathlib", "glob", "file-io", "aggregate"],
+    "solution": "paths = sorted(Path('/tmp/pp/p3_2_logs').glob('*.log'))\nresult = {p.name: len(p.read_text().splitlines()) for p in paths}"
+  },
+  {
+    "id": "t3-group-sort-topn",
+    "tier": 3,
+    "title": "Group → Sort → Top N per Group",
+    "domain_context": "Finding the two highest scores per user in an event stream",
+    "prompt": "Group events by user, then for each user return the top 2 scores (descending). Assign a dict of user to top-2 list to `result`.",
+    "given_code": "from collections import defaultdict",
+    "given_variables": "events = [{'user': 'alice', 'score': 10}, {'user': 'bob', 'score': 5}, {'user': 'alice', 'score': 25}, {'user': 'alice', 'score': 15}, {'user': 'bob', 'score': 30}, {'user': 'bob', 'score': 20}]",
+    "expected_output": "{\"alice\": [25, 15], \"bob\": [30, 20]}",
+    "expected_output_type": "dict",
+    "hints": [
+      "Use defaultdict(list) and append scores per user.",
+      "Sort each list with reverse=True.",
+      "Take the first 2 with [:2] in a dict comprehension."
+    ],
+    "tags": ["defaultdict", "sorting", "top-n"],
+    "solution": "groups = defaultdict(list)\nfor e in events:\n    groups[e['user']].append(e['score'])\nresult = {u: sorted(scores, reverse=True)[:2] for u, scores in groups.items()}"
+  },
+  {
+    "id": "t3-datetime-tz-shift",
+    "tier": 3,
+    "title": "Datetime Parse → Timezone Shift → Format",
+    "domain_context": "Normalizing a UTC timestamp into a regional report",
+    "prompt": "Parse raw as a naive datetime, mark it UTC, convert to an offset of target_offset_hours, and format as 'YYYY-MM-DD HH:MM'. Assign to `result`.",
+    "given_code": "from datetime import datetime, timezone, timedelta",
+    "given_variables": "raw = '2026-04-10 15:30:00'\ntarget_offset_hours = -4",
+    "expected_output": "\"2026-04-10 11:30\"",
+    "expected_output_type": "str",
+    "hints": [
+      "datetime.strptime(raw, '%Y-%m-%d %H:%M:%S') gives a naive datetime.",
+      "Use .replace(tzinfo=timezone.utc) to mark it UTC.",
+      "Then .astimezone(timezone(timedelta(hours=target_offset_hours))) shifts it."
+    ],
+    "tags": ["datetime", "timezone", "strftime"],
+    "solution": "dt = datetime.strptime(raw, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)\nshifted = dt.astimezone(timezone(timedelta(hours=target_offset_hours)))\nresult = shifted.strftime('%Y-%m-%d %H:%M')"
+  },
+  {
+    "id": "t3-retry-backoff",
+    "tier": 3,
+    "title": "Retry Loop With Exponential Backoff",
+    "domain_context": "Retrying a flaky API call while tracking cumulative backoff",
+    "prompt": "Call flaky_op() inside a loop up to max_attempts times. Catch ConnectionError and add 2**(attempt-1) seconds of backoff per failed attempt. On success, assign {'attempt': N, 'total_backoff': total} to `result`. Do not actually sleep.",
+    "given_code": "attempts_made = [0]\ndef flaky_op():\n    attempts_made[0] += 1\n    if attempts_made[0] <= failure_count:\n        raise ConnectionError('transient')\n    return 'ok'",
+    "given_variables": "failure_count = 2\nmax_attempts = 5",
+    "expected_output": "{\"attempt\": 3, \"total_backoff\": 3}",
+    "expected_output_type": "dict",
+    "hints": [
+      "Wrap flaky_op() in a try/except ConnectionError.",
+      "Track the cumulative backoff as 2 ** (attempt - 1) summed over failed attempts.",
+      "Break out of the loop once the call succeeds and build the result dict."
+    ],
+    "tags": ["try-except", "loop", "backoff"],
+    "solution": "total_backoff = 0\nfor attempt in range(1, max_attempts + 1):\n    try:\n        flaky_op()\n        result = {'attempt': attempt, 'total_backoff': total_backoff}\n        break\n    except ConnectionError:\n        total_backoff += 2 ** (attempt - 1)"
+  },
+  {
+    "id": "t3-env-config",
+    "tier": 3,
+    "title": "Env Config With Defaults And Coercion",
+    "domain_context": "Reading runtime config from environment variables with fallbacks",
+    "prompt": "Build a config dict with keys 'host', 'port', and 'user' by reading PYPECKER_HOST, PYPECKER_PORT (cast to int), and PYPECKER_USER from the environment. Defaults: 'localhost', 5432, 'analytics'. Assign to `result`.",
+    "given_code": "import os\nos.environ['PYPECKER_HOST'] = 'db.internal'\nos.environ['PYPECKER_PORT'] = '6543'\nos.environ.pop('PYPECKER_USER', None)",
+    "given_variables": "",
+    "expected_output": "{\"host\": \"db.internal\", \"port\": 6543, \"user\": \"analytics\"}",
+    "expected_output_type": "dict",
+    "hints": [
+      "os.getenv(name, default) returns the default when the variable is missing.",
+      "Wrap the port value in int() to convert it from a string.",
+      "Build the final dict literal with the three fields."
+    ],
+    "tags": ["os", "env", "config"],
+    "solution": "result = {\n    'host': os.getenv('PYPECKER_HOST', 'localhost'),\n    'port': int(os.getenv('PYPECKER_PORT', '5432')),\n    'user': os.getenv('PYPECKER_USER', 'analytics'),\n}"
+  },
+  {
+    "id": "t3-regex-log-dicts",
+    "tier": 3,
+    "title": "Regex → Structured Log Records",
+    "domain_context": "Parsing a multiline log into structured records",
+    "prompt": "Compile a regex that matches '<LEVEL> <ISO_TIMESTAMP> <MESSAGE>' per line, apply it with findall to log, and return a list of dicts with keys 'level', 'timestamp', 'message'. Assign to `result`.",
+    "given_code": "import re",
+    "given_variables": "log = 'ERROR 2026-04-10T10:30:01Z failed\\nINFO 2026-04-10T10:31:02Z ok\\nERROR 2026-04-10T10:32:05Z retry'",
+    "expected_output": "[{\"level\": \"ERROR\", \"timestamp\": \"2026-04-10T10:30:01Z\", \"message\": \"failed\"}, {\"level\": \"INFO\", \"timestamp\": \"2026-04-10T10:31:02Z\", \"message\": \"ok\"}, {\"level\": \"ERROR\", \"timestamp\": \"2026-04-10T10:32:05Z\", \"message\": \"retry\"}]",
+    "expected_output_type": "list",
+    "hints": [
+      "re.compile returns a Pattern object with a findall method.",
+      "Use three capturing groups for level, timestamp, and message.",
+      "findall with multiple groups returns a list of tuples — unpack inside a comprehension."
+    ],
+    "tags": ["regex", "parsing", "logs"],
+    "solution": "pattern = re.compile(r'(\\w+) (\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z) (.+)')\nmatches = pattern.findall(log)\nresult = [{'level': lvl, 'timestamp': ts, 'message': msg} for lvl, ts, msg in matches]"
+  },
+  {
+    "id": "t3-flatten-nested",
+    "tier": 3,
+    "title": "Flatten a Nested Dict",
+    "domain_context": "Flattening nested JSON into dot-delimited keys for a metrics sink",
+    "prompt": "Write a helper that flattens nested into a single-level dict with dot-joined keys. Assign the flattened dict to `result`.",
+    "given_code": "",
+    "given_variables": "nested = {'a': 1, 'b': {'c': 2, 'd': {'e': 3}}, 'f': 4}",
+    "expected_output": "{\"a\": 1, \"b.c\": 2, \"b.d.e\": 3, \"f\": 4}",
+    "expected_output_type": "dict",
+    "hints": [
+      "Recursion is a natural fit — a helper that takes (sub_dict, prefix).",
+      "For each (k, v): if v is a dict, recurse with f'{prefix}.{k}'; otherwise record the key.",
+      "Use isinstance(v, dict) to decide whether to recurse."
+    ],
+    "tags": ["recursion", "dict", "flatten"],
+    "solution": "def flat(d, p=''):\n    out = {}\n    for k, v in d.items():\n        kk = f'{p}.{k}' if p else k\n        if isinstance(v, dict):\n            out.update(flat(v, kk))\n        else:\n            out[kk] = v\n    return out\nresult = flat(nested)"
+  },
+  {
+    "id": "t3-schema-diff",
+    "tier": 3,
+    "title": "Schema Diff — Added/Removed/Changed",
+    "domain_context": "Comparing two versions of a table schema before a migration",
+    "prompt": "Compare old and new schemas. Return a dict with keys 'added' (cols only in new), 'removed' (only in old), and 'changed' (cols whose types differ). Each value is a sorted list. Assign to `result`.",
+    "given_code": "",
+    "given_variables": "old = {'id': 'int', 'name': 'str', 'email': 'str'}\nnew = {'id': 'int', 'name': 'text', 'phone': 'str'}",
+    "expected_output": "{\"added\": [\"phone\"], \"removed\": [\"email\"], \"changed\": [\"name\"]}",
+    "expected_output_type": "dict",
+    "hints": [
+      "Convert the keys to sets so you can use set arithmetic.",
+      "added = new_keys - old_keys; removed = old_keys - new_keys.",
+      "For changed, iterate over keys in both and compare the type strings."
+    ],
+    "tags": ["set", "schema", "diff"],
+    "solution": "old_keys = set(old)\nnew_keys = set(new)\nadded = sorted(new_keys - old_keys)\nremoved = sorted(old_keys - new_keys)\nchanged = sorted(k for k in old_keys & new_keys if old[k] != new[k])\nresult = {'added': added, 'removed': removed, 'changed': changed}"
+  },
+  {
+    "id": "t3-chunk-generator",
+    "tier": 3,
+    "title": "Batch Chunking Generator",
+    "domain_context": "Breaking a large list of records into fixed-size batches",
+    "prompt": "Define a generator `chunks(seq, size)` that yields successive sublists of length `size` (the last may be shorter). Materialize chunks(items, size) as a list and assign to `result`.",
+    "given_code": "",
+    "given_variables": "items = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]\nsize = 3",
+    "expected_output": "[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9]]",
+    "expected_output_type": "list",
+    "hints": [
+      "A plain function with `yield` becomes a generator.",
+      "Iterate over range(0, len(seq), size) and slice seq[i:i+size].",
+      "Wrap chunks(items, size) in list() to materialize."
+    ],
+    "tags": ["generator", "yield", "chunking"],
+    "solution": "def chunks(seq, size):\n    for i in range(0, len(seq), size):\n        yield seq[i:i + size]\nresult = list(chunks(items, size))"
+  },
+  {
+    "id": "t3-file-dedupe",
+    "tier": 3,
+    "title": "Duplicate File Detection",
+    "domain_context": "Reporting groups of files with identical contents",
+    "prompt": "Hash the contents of every file under '/tmp/pp/p3_11' (md5), group filenames by hash, and return only the groups with more than one file. Each group is a sorted list of names. Return a sorted list of those groups as `result`.",
+    "given_code": "import hashlib\nimport os\nfrom collections import defaultdict\nfrom pathlib import Path\nos.makedirs('/tmp/pp/p3_11', exist_ok=True)\nfiles_to_make = {'a.txt': 'hello', 'b.txt': 'world', 'c.txt': 'hello', 'd.txt': 'hello'}\nfor name, content in files_to_make.items():\n    with open(f'/tmp/pp/p3_11/{name}', 'w') as f:\n        f.write(content)",
+    "given_variables": "",
+    "expected_output": "[[\"a.txt\", \"c.txt\", \"d.txt\"]]",
+    "expected_output_type": "list",
+    "hints": [
+      "Loop over Path('/tmp/pp/p3_11').iterdir() and hash p.read_bytes() with hashlib.md5.",
+      "Use defaultdict(list) to bucket filenames by hash digest.",
+      "Filter groups with len(names) > 1 and sort the result."
+    ],
+    "tags": ["hashlib", "defaultdict", "filesystem"],
+    "solution": "groups = defaultdict(list)\nfor p in Path('/tmp/pp/p3_11').iterdir():\n    h = hashlib.md5(p.read_bytes()).hexdigest()\n    groups[h].append(p.name)\nresult = sorted([sorted(names) for names in groups.values() if len(names) > 1])"
+  },
+  {
+    "id": "t3-pipeline-map-filter",
+    "tier": 3,
+    "title": "map + filter + sum Pipeline",
+    "domain_context": "Totaling the amount of sale-type records in a stream",
+    "prompt": "Chain filter (keep only type == 'sale') then map (extract amount) then sum. Assign the total to `result`.",
+    "given_code": "",
+    "given_variables": "records = [{'id': 1, 'amount': 100, 'type': 'sale'}, {'id': 2, 'amount': 50, 'type': 'refund'}, {'id': 3, 'amount': 200, 'type': 'sale'}, {'id': 4, 'amount': 75, 'type': 'sale'}]",
+    "expected_output": "375",
+    "expected_output_type": "int",
+    "hints": [
+      "filter takes a predicate and an iterable.",
+      "map takes a transform and an iterable.",
+      "sum() consumes the final iterable directly."
+    ],
+    "tags": ["filter", "map", "sum"],
+    "solution": "sales = filter(lambda r: r['type'] == 'sale', records)\namounts = map(lambda r: r['amount'], sales)\nresult = sum(amounts)"
+  },
+  {
+    "id": "t3-csv-dictwriter",
+    "tier": 3,
+    "title": "csv.DictWriter Round Trip",
+    "domain_context": "Writing records out as CSV and reading them back",
+    "prompt": "Write records to '/tmp/pp/p3_13_out.csv' using csv.DictWriter with fieldnames ['id', 'name', 'email'] and a header row. Then read the file back with csv.reader and assign the list of rows (each row a list of strings) to `result`.",
+    "given_code": "import csv\nimport os\nos.makedirs('/tmp/pp', exist_ok=True)",
+    "given_variables": "records = [{'id': 1, 'name': 'alice', 'email': 'a@b.com'}, {'id': 2, 'name': 'bob', 'email': 'b@c.com'}]\noutput_path = '/tmp/pp/p3_13_out.csv'",
+    "expected_output": "[[\"id\", \"name\", \"email\"], [\"1\", \"alice\", \"a@b.com\"], [\"2\", \"bob\", \"b@c.com\"]]",
+    "expected_output_type": "list",
+    "hints": [
+      "Open the output file with newline='' to avoid doubled line endings.",
+      "csv.DictWriter(f, fieldnames=...) then writeheader() and writerows(records).",
+      "Reopen the file and materialize with list(csv.reader(f))."
+    ],
+    "tags": ["csv", "file-io", "DictWriter"],
+    "solution": "with open(output_path, 'w', newline='') as f:\n    writer = csv.DictWriter(f, fieldnames=['id', 'name', 'email'])\n    writer.writeheader()\n    writer.writerows(records)\nwith open(output_path) as f:\n    result = list(csv.reader(f))"
+  },
+  {
+    "id": "t3-deep-merge",
+    "tier": 3,
+    "title": "Deep-Merge Config Dicts",
+    "domain_context": "Overlaying environment overrides on a base config with nested sections",
+    "prompt": "Recursively merge env_overrides into base so that nested dicts merge rather than replace. Scalar values from env_overrides win. Assign the merged dict to `result`.",
+    "given_code": "",
+    "given_variables": "base = {'timeout': 30, 'retries': 3, 'endpoints': {'primary': 'http://a', 'fallback': 'http://b'}}\nenv_overrides = {'timeout': 60, 'endpoints': {'fallback': 'http://c'}}",
+    "expected_output": "{\"timeout\": 60, \"retries\": 3, \"endpoints\": {\"primary\": \"http://a\", \"fallback\": \"http://c\"}}",
+    "expected_output_type": "dict",
+    "hints": [
+      "Write a helper that takes two dicts and returns a merged copy.",
+      "For each key in the override, recurse when both sides are dicts.",
+      "Otherwise just overwrite the value."
+    ],
+    "tags": ["recursion", "dict", "merge"],
+    "solution": "def deep_merge(a, b):\n    out = dict(a)\n    for k, v in b.items():\n        if isinstance(v, dict) and isinstance(out.get(k), dict):\n            out[k] = deep_merge(out[k], v)\n        else:\n            out[k] = v\n    return out\nresult = deep_merge(base, env_overrides)"
+  },
+  {
+    "id": "t3-validate-record",
+    "tier": 3,
+    "title": "Record Validation Report",
+    "domain_context": "Validating a record against business rules and collecting every error",
+    "prompt": "Check that record has an int id, a non-empty string name, a non-negative int age, and a string email. Return a list of error messages like '<field>: <reason>' for every failing rule. Assign the list to `result`.",
+    "given_code": "",
+    "given_variables": "record = {'id': 101, 'name': '', 'age': -5, 'email': 'alice@example.com'}",
+    "expected_output": "[\"name: must be non-empty string\", \"age: must be non-negative int\"]",
+    "expected_output_type": "list",
+    "hints": [
+      "Start with an empty errors list and append one string per failing rule.",
+      "Use isinstance() for type checks and truthiness for non-empty strings.",
+      "Remember age must be non-negative (0 counts as valid)."
+    ],
+    "tags": ["validation", "isinstance", "errors"],
+    "solution": "errors = []\nif not isinstance(record.get('id'), int):\n    errors.append('id: must be int')\nif not (isinstance(record.get('name'), str) and record['name']):\n    errors.append('name: must be non-empty string')\nif not (isinstance(record.get('age'), int) and record['age'] >= 0):\n    errors.append('age: must be non-negative int')\nif not isinstance(record.get('email'), str):\n    errors.append('email: must be string')\nresult = errors"
+  }
+]

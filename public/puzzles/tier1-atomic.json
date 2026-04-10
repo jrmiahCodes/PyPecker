@@ -1,0 +1,542 @@
+[
+  {
+    "id": "t1-fstring-interp",
+    "tier": 1,
+    "title": "F-string — Variable Interpolation",
+    "domain_context": "Structured logging for an ETL pipeline run",
+    "prompt": "Build a log line like 'pipeline=<name> status=<status> rows=<count>' using an f-string.",
+    "given_code": "",
+    "given_variables": "pipeline = 'etl_customers'\nstatus = 'success'\nrows = 14203",
+    "expected_output": "\"pipeline=etl_customers status=success rows=14203\"",
+    "expected_output_type": "str",
+    "hints": [
+      "Prefix the string with f and wrap variable names in braces.",
+      "Three substitutions needed: {pipeline}, {status}, {rows}.",
+      "Answer shape: f'pipeline={pipeline} status={status} rows={rows}'."
+    ],
+    "tags": ["f-string", "logging", "string-formatting"],
+    "solution": "f'pipeline={pipeline} status={status} rows={rows}'"
+  },
+  {
+    "id": "t1-fstring-expr",
+    "tier": 1,
+    "title": "F-string — Expression Inside Braces",
+    "domain_context": "Formatting bytes-transferred metrics for a dashboard",
+    "prompt": "Using one f-string, return 'Transferred 2.50 MB' by dividing bytes_transferred by 1024*1024 and formatting with two decimals.",
+    "given_code": "",
+    "given_variables": "bytes_transferred = 2621440",
+    "expected_output": "\"Transferred 2.50 MB\"",
+    "expected_output_type": "str",
+    "hints": [
+      "You can put an expression inside the braces, not just a variable.",
+      "Use the format spec :.2f after a colon inside the braces.",
+      "f'Transferred {bytes_transferred / 1024 / 1024:.2f} MB'."
+    ],
+    "tags": ["f-string", "format-spec", "metrics"],
+    "solution": "f'Transferred {bytes_transferred / 1024 / 1024:.2f} MB'"
+  },
+  {
+    "id": "t1-listcomp-basic",
+    "tier": 1,
+    "title": "List Comprehension — Extract Column Names",
+    "domain_context": "Projecting a schema from a list of column metadata dicts",
+    "prompt": "Given a list of column metadata dicts, return a list of just the column names.",
+    "given_code": "",
+    "given_variables": "columns = [{'name': 'user_id', 'type': 'int'}, {'name': 'email', 'type': 'str'}, {'name': 'created_at', 'type': 'datetime'}]",
+    "expected_output": "[\"user_id\", \"email\", \"created_at\"]",
+    "expected_output_type": "list",
+    "hints": [
+      "Use a list comprehension over columns.",
+      "Each element is a dict, so pull out the 'name' key.",
+      "[c['name'] for c in columns]."
+    ],
+    "tags": ["list-comprehension", "schema", "projection"],
+    "solution": "[c['name'] for c in columns]"
+  },
+  {
+    "id": "t1-listcomp-filter",
+    "tier": 1,
+    "title": "List Comprehension — Filter by Extension",
+    "domain_context": "Scanning a data lake for a specific file format",
+    "prompt": "Return only the .parquet file paths from the list.",
+    "given_code": "",
+    "given_variables": "files = ['data/sales.parquet', 'data/tmp.csv', 'data/users.parquet', 'logs/debug.log']",
+    "expected_output": "[\"data/sales.parquet\", \"data/users.parquet\"]",
+    "expected_output_type": "list",
+    "hints": [
+      "List comprehension with an if clause.",
+      "Use str.endswith to check the extension.",
+      "[f for f in files if f.endswith('.parquet')]."
+    ],
+    "tags": ["list-comprehension", "filtering", "file-paths"],
+    "solution": "[f for f in files if f.endswith('.parquet')]"
+  },
+  {
+    "id": "t1-dict-get-default",
+    "tier": 1,
+    "title": "Dict .get() — Safe Config Access",
+    "domain_context": "Reading a config dict where some keys may be missing",
+    "prompt": "Read the 'timeout' key from config, falling back to 30 if it is missing.",
+    "given_code": "",
+    "given_variables": "config = {'host': 'db.internal', 'port': 5432, 'user': 'analytics'}",
+    "expected_output": "30",
+    "expected_output_type": "int",
+    "hints": [
+      "Dict has a .get method that accepts a default.",
+      "config.get(key, default) returns default when key is missing.",
+      "config.get('timeout', 30)."
+    ],
+    "tags": ["dict", "config", "defaults"],
+    "solution": "config.get('timeout', 30)"
+  },
+  {
+    "id": "t1-tuple-unpack-comp",
+    "tier": 1,
+    "title": "Tuple Unpacking — Key/Value Pairs",
+    "domain_context": "Rebuilding a config dict with uppercased keys",
+    "prompt": "Given a list of (key, value) pairs, build a dict where the keys are uppercased. Use tuple unpacking in the comprehension.",
+    "given_code": "",
+    "given_variables": "pairs = [('host', 'db.internal'), ('port', 5432), ('user', 'analytics')]",
+    "expected_output": "{\"HOST\": \"db.internal\", \"PORT\": 5432, \"USER\": \"analytics\"}",
+    "expected_output_type": "dict",
+    "hints": [
+      "Dict comprehension: {expr_key: expr_value for ... in ...}.",
+      "Unpack each pair into k, v directly in the for clause.",
+      "{k.upper(): v for k, v in pairs}."
+    ],
+    "tags": ["dict-comprehension", "tuple-unpacking", "config"],
+    "solution": "{k.upper(): v for k, v in pairs}"
+  },
+  {
+    "id": "t1-star-args",
+    "tier": 1,
+    "title": "Star Unpacking — Spread as Function Args",
+    "domain_context": "Parameterizing a range from config values",
+    "prompt": "Given a 3-element list [start, stop, step], call range() with those values and return the result as a list. Use * unpacking.",
+    "given_code": "",
+    "given_variables": "steps = [0, 100, 10]",
+    "expected_output": "[0, 10, 20, 30, 40, 50, 60, 70, 80, 90]",
+    "expected_output_type": "list",
+    "hints": [
+      "range(start, stop, step) takes three positional args.",
+      "You can spread a list into positional args with *.",
+      "list(range(*steps))."
+    ],
+    "tags": ["star-unpacking", "range", "args"],
+    "solution": "list(range(*steps))"
+  },
+  {
+    "id": "t1-ternary",
+    "tier": 1,
+    "title": "Ternary — Status From Row Count",
+    "domain_context": "Reporting load status after an ingest job",
+    "prompt": "Return 'empty' if row_count is 0, otherwise 'populated'.",
+    "given_code": "",
+    "given_variables": "row_count = 0",
+    "expected_output": "\"empty\"",
+    "expected_output_type": "str",
+    "hints": [
+      "Python's ternary reads: <a> if <cond> else <b>.",
+      "Test row_count == 0.",
+      "'empty' if row_count == 0 else 'populated'."
+    ],
+    "tags": ["ternary", "conditional", "status"],
+    "solution": "'empty' if row_count == 0 else 'populated'"
+  },
+  {
+    "id": "t1-enumerate",
+    "tier": 1,
+    "title": "enumerate() — 1-indexed Batch Labels",
+    "domain_context": "Numbering batches for a parallel worker pool",
+    "prompt": "Return labels like '1: batch_001', '2: batch_002', ... — 1-indexed. Use enumerate.",
+    "given_code": "",
+    "given_variables": "batches = ['batch_001', 'batch_002', 'batch_003']",
+    "expected_output": "[\"1: batch_001\", \"2: batch_002\", \"3: batch_003\"]",
+    "expected_output_type": "list",
+    "hints": [
+      "enumerate yields (index, value) — pass start=1 for 1-indexing.",
+      "Combine with an f-string inside a list comprehension.",
+      "[f'{i}: {b}' for i, b in enumerate(batches, start=1)]."
+    ],
+    "tags": ["enumerate", "list-comprehension", "f-string"],
+    "solution": "[f'{i}: {b}' for i, b in enumerate(batches, start=1)]"
+  },
+  {
+    "id": "t1-zip-pairs",
+    "tier": 1,
+    "title": "zip() — Pair Headers With Values",
+    "domain_context": "Aligning a CSV header row with a data row",
+    "prompt": "Return a list of (header, value) pairs by zipping the two lists.",
+    "given_code": "",
+    "given_variables": "headers = ['user_id', 'email', 'status']\nvalues = [42, 'a@b.com', 'active']",
+    "expected_output": "[[\"user_id\", 42], [\"email\", \"a@b.com\"], [\"status\", \"active\"]]",
+    "expected_output_type": "list",
+    "hints": [
+      "zip takes two iterables and yields pairs.",
+      "Wrap in list() to materialize the result.",
+      "list(zip(headers, values))."
+    ],
+    "tags": ["zip", "pairing", "csv"],
+    "solution": "list(zip(headers, values))"
+  },
+  {
+    "id": "t1-dict-zip",
+    "tier": 1,
+    "title": "dict(zip()) — Record From Parallel Lists",
+    "domain_context": "Building a record dict from a schema plus a row",
+    "prompt": "Build a dict from the field names and row values.",
+    "given_code": "",
+    "given_variables": "fields = ['id', 'name', 'size_mb']\nrow = [101, 'logs.json', 42.5]",
+    "expected_output": "{\"id\": 101, \"name\": \"logs.json\", \"size_mb\": 42.5}",
+    "expected_output_type": "dict",
+    "hints": [
+      "zip the two lists into key/value pairs.",
+      "dict() accepts an iterable of pairs.",
+      "dict(zip(fields, row))."
+    ],
+    "tags": ["dict", "zip", "record"],
+    "solution": "dict(zip(fields, row))"
+  },
+  {
+    "id": "t1-slice-last-n",
+    "tier": 1,
+    "title": "Slice — Last N Log Entries",
+    "domain_context": "Tailing the most recent log lines from a buffer",
+    "prompt": "Return the last 3 entries from the log buffer.",
+    "given_code": "",
+    "given_variables": "log_entries = ['e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8']",
+    "expected_output": "[\"e6\", \"e7\", \"e8\"]",
+    "expected_output_type": "list",
+    "hints": [
+      "Slice syntax: list[start:stop].",
+      "Negative indices count from the end.",
+      "log_entries[-3:]."
+    ],
+    "tags": ["slicing", "logs", "tail"],
+    "solution": "log_entries[-3:]"
+  },
+  {
+    "id": "t1-negative-index",
+    "tier": 1,
+    "title": "Negative Indexing — Most Recent Record",
+    "domain_context": "Peeking at the latest row in an append-only table",
+    "prompt": "Return the most recent record (the last one in the list).",
+    "given_code": "",
+    "given_variables": "records = [{'id': 1, 'event': 'login'}, {'id': 2, 'event': 'view'}, {'id': 3, 'event': 'purchase'}]",
+    "expected_output": "{\"id\": 3, \"event\": \"purchase\"}",
+    "expected_output_type": "dict",
+    "hints": [
+      "Negative indices count from the tail.",
+      "-1 is the last element.",
+      "records[-1]."
+    ],
+    "tags": ["indexing", "records"],
+    "solution": "records[-1]"
+  },
+  {
+    "id": "t1-star-list-literal",
+    "tier": 1,
+    "title": "Star Unpacking — Prepend a Column",
+    "domain_context": "Adding an id column to the front of a schema list",
+    "prompt": "Return a new list with 'id' at the front followed by every column in data_cols. Use star unpacking inside the list literal.",
+    "given_code": "",
+    "given_variables": "data_cols = ['name', 'email', 'created_at']",
+    "expected_output": "[\"id\", \"name\", \"email\", \"created_at\"]",
+    "expected_output_type": "list",
+    "hints": [
+      "You can spread a list into a new list literal with *.",
+      "['id', *data_cols] puts 'id' first and then the rest.",
+      "['id', *data_cols]."
+    ],
+    "tags": ["star-unpacking", "list-literal", "schema"],
+    "solution": "['id', *data_cols]"
+  },
+  {
+    "id": "t1-sorted-lambda",
+    "tier": 1,
+    "title": "sorted() — Tables By Row Count",
+    "domain_context": "Ordering tables from smallest to largest",
+    "prompt": "Return tables sorted ascending by 'rows'.",
+    "given_code": "",
+    "given_variables": "tables = [{'name': 'events', 'rows': 45600}, {'name': 'users', 'rows': 14203}, {'name': 'orders', 'rows': 8921}]",
+    "expected_output": "[{\"name\": \"orders\", \"rows\": 8921}, {\"name\": \"users\", \"rows\": 14203}, {\"name\": \"events\", \"rows\": 45600}]",
+    "expected_output_type": "list",
+    "hints": [
+      "sorted() accepts a key function.",
+      "Use a lambda that returns t['rows'].",
+      "sorted(tables, key=lambda t: t['rows'])."
+    ],
+    "tags": ["sorted", "lambda", "dicts"],
+    "solution": "sorted(tables, key=lambda t: t['rows'])"
+  },
+  {
+    "id": "t1-sorted-reverse",
+    "tier": 1,
+    "title": "sorted() — Largest Files First",
+    "domain_context": "Ranking files by disk footprint, biggest first",
+    "prompt": "Return files sorted by 'size' descending.",
+    "given_code": "",
+    "given_variables": "files = [{'name': 'a.log', 'size': 1024}, {'name': 'b.log', 'size': 4096}, {'name': 'c.log', 'size': 2048}]",
+    "expected_output": "[{\"name\": \"b.log\", \"size\": 4096}, {\"name\": \"c.log\", \"size\": 2048}, {\"name\": \"a.log\", \"size\": 1024}]",
+    "expected_output_type": "list",
+    "hints": [
+      "sorted() takes a reverse flag.",
+      "Combine reverse=True with a key lambda.",
+      "sorted(files, key=lambda f: f['size'], reverse=True)."
+    ],
+    "tags": ["sorted", "reverse", "lambda"],
+    "solution": "sorted(files, key=lambda f: f['size'], reverse=True)"
+  },
+  {
+    "id": "t1-join-csv",
+    "tier": 1,
+    "title": ".join() — Build a CSV Line",
+    "domain_context": "Serializing a row for a CSV writer",
+    "prompt": "Join the fields with commas into a single CSV line.",
+    "given_code": "",
+    "given_variables": "fields = ['42', 'Alice', 'active']",
+    "expected_output": "\"42,Alice,active\"",
+    "expected_output_type": "str",
+    "hints": [
+      "str.join is a method on the separator, not on the list.",
+      "','.join(iterable) returns the joined string.",
+      "','.join(fields)."
+    ],
+    "tags": ["join", "csv", "strings"],
+    "solution": "','.join(fields)"
+  },
+  {
+    "id": "t1-split-pipe",
+    "tier": 1,
+    "title": ".split() — Parse a Pipe-delimited Record",
+    "domain_context": "Parsing a legacy pipe-delimited export",
+    "prompt": "Split the record on the pipe character and return the list of fields.",
+    "given_code": "",
+    "given_variables": "record = 'user_id|email|status|created_at'",
+    "expected_output": "[\"user_id\", \"email\", \"status\", \"created_at\"]",
+    "expected_output_type": "list",
+    "hints": [
+      "str has a .split method that takes a delimiter.",
+      "Pass '|' as the delimiter.",
+      "record.split('|')."
+    ],
+    "tags": ["split", "delimited", "parsing"],
+    "solution": "record.split('|')"
+  },
+  {
+    "id": "t1-in-membership",
+    "tier": 1,
+    "title": "Membership — Column Exists in Schema",
+    "domain_context": "Guarding a query against a missing column",
+    "prompt": "Return True if 'email' is in the schema list.",
+    "given_code": "",
+    "given_variables": "schema = ['user_id', 'email', 'name', 'created_at']",
+    "expected_output": "true",
+    "expected_output_type": "bool",
+    "hints": [
+      "Python has a dedicated 'in' operator.",
+      "'value' in iterable returns a bool.",
+      "'email' in schema."
+    ],
+    "tags": ["membership", "in", "schema"],
+    "solution": "'email' in schema"
+  },
+  {
+    "id": "t1-any-generator",
+    "tier": 1,
+    "title": "any() — Any Python Files?",
+    "domain_context": "Scanning a directory listing for a file type",
+    "prompt": "Return True if any file in the list ends with '.py'.",
+    "given_code": "",
+    "given_variables": "files = ['data.csv', 'readme.md', 'config.yaml', 'script.py']",
+    "expected_output": "true",
+    "expected_output_type": "bool",
+    "hints": [
+      "any() short-circuits on the first True.",
+      "Pass it a generator that tests each element.",
+      "any(f.endswith('.py') for f in files)."
+    ],
+    "tags": ["any", "generator", "filter"],
+    "solution": "any(f.endswith('.py') for f in files)"
+  },
+  {
+    "id": "t1-all-required",
+    "tier": 1,
+    "title": "all() — Every Record Has an ID",
+    "domain_context": "Validating that every record has a required field",
+    "prompt": "Return True if every record has an 'id' key.",
+    "given_code": "",
+    "given_variables": "records = [{'id': 1, 'name': 'a'}, {'id': 2, 'name': 'b'}, {'id': 3, 'name': 'c'}]",
+    "expected_output": "true",
+    "expected_output_type": "bool",
+    "hints": [
+      "all() returns True only if every element is truthy.",
+      "Membership test 'id' in r works as the predicate.",
+      "all('id' in r for r in records)."
+    ],
+    "tags": ["all", "generator", "validation"],
+    "solution": "all('id' in r for r in records)"
+  },
+  {
+    "id": "t1-isinstance",
+    "tier": 1,
+    "title": "isinstance() — Type Guard",
+    "domain_context": "Guarding a branch that only handles strings",
+    "prompt": "Return True if value is a str.",
+    "given_code": "",
+    "given_variables": "value = '42'",
+    "expected_output": "true",
+    "expected_output_type": "bool",
+    "hints": [
+      "isinstance(obj, type) returns a bool.",
+      "The builtin type for strings is str.",
+      "isinstance(value, str)."
+    ],
+    "tags": ["isinstance", "type-check"],
+    "solution": "isinstance(value, str)"
+  },
+  {
+    "id": "t1-set-dedupe",
+    "tier": 1,
+    "title": "set() — Deduplicate IDs",
+    "domain_context": "Collapsing duplicate record ids from a noisy stream",
+    "prompt": "Return the unique ids as a set.",
+    "given_code": "",
+    "given_variables": "ids = [101, 203, 101, 404, 203, 505]",
+    "expected_output": "[101, 203, 404, 505]",
+    "expected_output_type": "set",
+    "hints": [
+      "set() accepts any iterable.",
+      "Duplicates are removed automatically.",
+      "set(ids)."
+    ],
+    "tags": ["set", "dedupe"],
+    "solution": "set(ids)"
+  },
+  {
+    "id": "t1-set-intersection",
+    "tier": 1,
+    "title": "Set Intersection — Common Columns",
+    "domain_context": "Comparing two schemas for overlapping fields",
+    "prompt": "Return the set of columns present in both schemas.",
+    "given_code": "",
+    "given_variables": "schema_a = {'user_id', 'email', 'name'}\nschema_b = {'user_id', 'phone', 'name'}",
+    "expected_output": "[\"name\", \"user_id\"]",
+    "expected_output_type": "set",
+    "hints": [
+      "Python sets support a & b for intersection.",
+      "The result is a new set containing shared elements.",
+      "schema_a & schema_b."
+    ],
+    "tags": ["set", "intersection", "schema"],
+    "solution": "schema_a & schema_b"
+  },
+  {
+    "id": "t1-set-difference",
+    "tier": 1,
+    "title": "Set Difference — Missing Columns",
+    "domain_context": "Finding which required columns are absent from a table",
+    "prompt": "Return the set of columns present in 'required' but missing from 'actual'.",
+    "given_code": "",
+    "given_variables": "required = {'id', 'name', 'email', 'created_at'}\nactual = {'id', 'email'}",
+    "expected_output": "[\"created_at\", \"name\"]",
+    "expected_output_type": "set",
+    "hints": [
+      "The - operator on sets computes the difference.",
+      "a - b keeps elements in a that are not in b.",
+      "required - actual."
+    ],
+    "tags": ["set", "difference", "schema"],
+    "solution": "required - actual"
+  },
+  {
+    "id": "t1-map-upper",
+    "tier": 1,
+    "title": "map() — Uppercase All Names",
+    "domain_context": "Normalizing a batch of user names for matching",
+    "prompt": "Apply str.upper to every element of names and return a list.",
+    "given_code": "",
+    "given_variables": "names = ['alice', 'bob', 'charlie']",
+    "expected_output": "[\"ALICE\", \"BOB\", \"CHARLIE\"]",
+    "expected_output_type": "list",
+    "hints": [
+      "map(func, iterable) returns a map object — wrap in list().",
+      "str.upper is a method you can pass as a function.",
+      "list(map(str.upper, names))."
+    ],
+    "tags": ["map", "strings", "transform"],
+    "solution": "list(map(str.upper, names))"
+  },
+  {
+    "id": "t1-filter-notnone",
+    "tier": 1,
+    "title": "filter() — Drop None Values",
+    "domain_context": "Keeping only rows that were parsed successfully",
+    "prompt": "Return the values that are not None, as a list.",
+    "given_code": "",
+    "given_variables": "values = [10, None, 20, None, 30, 0, None]",
+    "expected_output": "[10, 20, 30, 0]",
+    "expected_output_type": "list",
+    "hints": [
+      "filter(pred, iterable) keeps elements where pred returns truthy.",
+      "A lambda like v is not None distinguishes None from 0.",
+      "list(filter(lambda v: v is not None, values))."
+    ],
+    "tags": ["filter", "lambda", "none"],
+    "solution": "list(filter(lambda v: v is not None, values))"
+  },
+  {
+    "id": "t1-startswith-route",
+    "tier": 1,
+    "title": ".startswith() — Prefix Route Check",
+    "domain_context": "Routing a file by its storage prefix",
+    "prompt": "Return True if path starts with 's3://'.",
+    "given_code": "",
+    "given_variables": "path = 's3://bucket/raw/events/2026-04-10.parquet'",
+    "expected_output": "true",
+    "expected_output_type": "bool",
+    "hints": [
+      "str has a .startswith method that returns a bool.",
+      "Pass the prefix string as the argument.",
+      "path.startswith('s3://')."
+    ],
+    "tags": ["strings", "startswith", "routing"],
+    "solution": "path.startswith('s3://')"
+  },
+  {
+    "id": "t1-getenv-default",
+    "tier": 1,
+    "title": "os.getenv() — Config With Default",
+    "domain_context": "Reading a timeout from the environment with a fallback",
+    "prompt": "Read PYPECKER_TIMEOUT from the environment, defaulting to '30' if the variable is unset.",
+    "given_code": "import os\nos.environ['PYPECKER_TIMEOUT'] = '60'",
+    "given_variables": "",
+    "expected_output": "\"60\"",
+    "expected_output_type": "str",
+    "hints": [
+      "os.getenv(name, default) returns the default when the var is missing.",
+      "Strings only — env values are always strings.",
+      "os.getenv('PYPECKER_TIMEOUT', '30')."
+    ],
+    "tags": ["os", "env", "config"],
+    "solution": "os.getenv('PYPECKER_TIMEOUT', '30')"
+  },
+  {
+    "id": "t1-len-mix",
+    "tier": 1,
+    "title": "len() — Counts Across Types",
+    "domain_context": "Reporting quick stats about a record batch",
+    "prompt": "Return a list [record count, schema column count, message length] — three len() calls in one expression.",
+    "given_code": "",
+    "given_variables": "records = [1, 2, 3, 4, 5]\nschema = {'id': 'int', 'name': 'str', 'email': 'str'}\nmsg = 'load complete'",
+    "expected_output": "[5, 3, 13]",
+    "expected_output_type": "list",
+    "hints": [
+      "len works on lists, dicts, and strings.",
+      "Build a list literal of three len() calls.",
+      "[len(records), len(schema), len(msg)]."
+    ],
+    "tags": ["len", "stats"],
+    "solution": "[len(records), len(schema), len(msg)]"
+  }
+]

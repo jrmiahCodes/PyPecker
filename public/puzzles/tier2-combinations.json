@@ -1,0 +1,452 @@
+[
+  {
+    "id": "t2-listcomp-suffix",
+    "tier": 2,
+    "title": "List Comp + Path.suffix",
+    "domain_context": "Profiling file types in a data lake directory",
+    "prompt": "Return a list of the file extensions (including the leading dot) for every path, preserving order.",
+    "given_code": "from pathlib import Path",
+    "given_variables": "files = ['data/sales.parquet', 'logs/debug.log', 'data/users.parquet', 'config/app.yaml', 'README.md']",
+    "expected_output": "[\".parquet\", \".log\", \".parquet\", \".yaml\", \".md\"]",
+    "expected_output_type": "list",
+    "hints": [
+      "Path(f).suffix returns the extension including the dot.",
+      "Combine it with a list comprehension over files.",
+      "[Path(f).suffix for f in files]."
+    ],
+    "tags": ["list-comprehension", "pathlib", "suffix"],
+    "solution": "[Path(f).suffix for f in files]"
+  },
+  {
+    "id": "t2-defaultdict-group",
+    "tier": 2,
+    "title": "defaultdict — Group Names by Region",
+    "domain_context": "Bucketing records by a categorical key",
+    "prompt": "Group record names by region into a dict of lists. Assign the final dict to `result`.",
+    "given_code": "from collections import defaultdict",
+    "given_variables": "records = [{'name': 'alice', 'region': 'us-east'}, {'name': 'bob', 'region': 'eu-west'}, {'name': 'charlie', 'region': 'us-east'}, {'name': 'dave', 'region': 'eu-west'}]",
+    "expected_output": "{\"us-east\": [\"alice\", \"charlie\"], \"eu-west\": [\"bob\", \"dave\"]}",
+    "expected_output_type": "dict",
+    "hints": [
+      "defaultdict(list) gives you an empty list for any missing key.",
+      "Loop over records and append the name to the region bucket.",
+      "Wrap the final defaultdict in dict() before assigning to result."
+    ],
+    "tags": ["defaultdict", "grouping", "loop"],
+    "solution": "buckets = defaultdict(list)\nfor r in records:\n    buckets[r['region']].append(r['name'])\nresult = dict(buckets)"
+  },
+  {
+    "id": "t2-open-json-load",
+    "tier": 2,
+    "title": "with open() + json.load()",
+    "domain_context": "Loading a service config from a JSON file",
+    "prompt": "Read the JSON file at '/tmp/pp/p3_config.json' and assign the parsed dict to `result`.",
+    "given_code": "import json\nimport os\nos.makedirs('/tmp/pp', exist_ok=True)\nwith open('/tmp/pp/p3_config.json', 'w') as f:\n    json.dump({'host': 'db.internal', 'port': 5432, 'user': 'analytics'}, f)",
+    "given_variables": "",
+    "expected_output": "{\"host\": \"db.internal\", \"port\": 5432, \"user\": \"analytics\"}",
+    "expected_output_type": "dict",
+    "hints": [
+      "Use `with open(path) as f:` to open the file.",
+      "json.load(f) parses a file handle into Python objects.",
+      "Assign json.load(f) to result inside the with block."
+    ],
+    "tags": ["json", "file-io", "config"],
+    "solution": "with open('/tmp/pp/p3_config.json') as f:\n    result = json.load(f)"
+  },
+  {
+    "id": "t2-csv-dictreader",
+    "tier": 2,
+    "title": "with open() + csv.DictReader",
+    "domain_context": "Loading a user export CSV into records",
+    "prompt": "Read '/tmp/pp/p4_users.csv' with csv.DictReader and assign the list of row dicts to `result`.",
+    "given_code": "import csv\nimport os\nos.makedirs('/tmp/pp', exist_ok=True)\nwith open('/tmp/pp/p4_users.csv', 'w', newline='') as f:\n    w = csv.writer(f)\n    w.writerow(['id', 'name', 'email'])\n    w.writerow(['1', 'alice', 'alice@example.com'])\n    w.writerow(['2', 'bob', 'bob@example.com'])",
+    "given_variables": "",
+    "expected_output": "[{\"id\": \"1\", \"name\": \"alice\", \"email\": \"alice@example.com\"}, {\"id\": \"2\", \"name\": \"bob\", \"email\": \"bob@example.com\"}]",
+    "expected_output_type": "list",
+    "hints": [
+      "csv.DictReader turns each row into a dict keyed by the header row.",
+      "Wrap the reader in list() to materialize all rows.",
+      "All values read from CSV come back as strings."
+    ],
+    "tags": ["csv", "file-io", "records"],
+    "solution": "with open('/tmp/pp/p4_users.csv') as f:\n    result = list(csv.DictReader(f))"
+  },
+  {
+    "id": "t2-sum-genexpr",
+    "tier": 2,
+    "title": "sum() + Generator Expression",
+    "domain_context": "Reporting total bytes transferred across a batch",
+    "prompt": "Return the total of t['bytes'] across all transfers using sum() with a generator expression.",
+    "given_code": "",
+    "given_variables": "transfers = [{'bytes': 1024, 'file': 'a.log'}, {'bytes': 2048, 'file': 'b.log'}, {'bytes': 4096, 'file': 'c.log'}]",
+    "expected_output": "7168",
+    "expected_output_type": "int",
+    "hints": [
+      "sum() accepts any iterable.",
+      "A generator expression (t['bytes'] for t in transfers) avoids building an intermediate list.",
+      "sum(t['bytes'] for t in transfers)."
+    ],
+    "tags": ["sum", "generator", "aggregation"],
+    "solution": "sum(t['bytes'] for t in transfers)"
+  },
+  {
+    "id": "t2-max-genexpr",
+    "tier": 2,
+    "title": "max() + Generator Expression",
+    "domain_context": "Finding the largest file in a batch",
+    "prompt": "Return the largest t['bytes'] value using max() with a generator expression.",
+    "given_code": "",
+    "given_variables": "transfers = [{'bytes': 1024, 'file': 'a.log'}, {'bytes': 2048, 'file': 'b.log'}, {'bytes': 4096, 'file': 'c.log'}]",
+    "expected_output": "4096",
+    "expected_output_type": "int",
+    "hints": [
+      "max() accepts an iterable of comparable values.",
+      "Feed it a generator expression over transfers.",
+      "max(t['bytes'] for t in transfers)."
+    ],
+    "tags": ["max", "generator", "aggregation"],
+    "solution": "max(t['bytes'] for t in transfers)"
+  },
+  {
+    "id": "t2-counter-most-common",
+    "tier": 2,
+    "title": "Counter — Top Error Types",
+    "domain_context": "Finding the two most frequent error types in a log",
+    "prompt": "Return the two most common error types as a list of (error, count) pairs.",
+    "given_code": "from collections import Counter",
+    "given_variables": "errors = ['TimeoutError', 'ValueError', 'TimeoutError', 'KeyError', 'TimeoutError', 'ValueError']",
+    "expected_output": "[[\"TimeoutError\", 3], [\"ValueError\", 2]]",
+    "expected_output_type": "list",
+    "hints": [
+      "Counter(iterable) tallies occurrences.",
+      "Counter has a .most_common(n) method that returns the top n pairs.",
+      "Counter(errors).most_common(2)."
+    ],
+    "tags": ["counter", "collections", "top-n"],
+    "solution": "Counter(errors).most_common(2)"
+  },
+  {
+    "id": "t2-chained-strings",
+    "tier": 2,
+    "title": "Chained String Methods — Normalize Columns",
+    "domain_context": "Cleaning up a raw header line from a legacy feed",
+    "prompt": "Split the raw header on commas, strip whitespace from each field, and lowercase them. Return the list.",
+    "given_code": "",
+    "given_variables": "raw = '  User_ID , Email , Created_At  '",
+    "expected_output": "[\"user_id\", \"email\", \"created_at\"]",
+    "expected_output_type": "list",
+    "hints": [
+      "split returns a list — process each element.",
+      "Chain .strip() and .lower() inside a comprehension.",
+      "[c.strip().lower() for c in raw.split(',')]."
+    ],
+    "tags": ["strings", "comprehension", "normalization"],
+    "solution": "[c.strip().lower() for c in raw.split(',')]"
+  },
+  {
+    "id": "t2-dictcomp-uppercase",
+    "tier": 2,
+    "title": "Dict Comp — Uppercase Values",
+    "domain_context": "Uppercasing env var values before exporting",
+    "prompt": "Return a new dict with every value uppercased (leave keys untouched).",
+    "given_code": "",
+    "given_variables": "env = {'host': 'db.internal', 'user': 'analytics', 'port': '5432'}",
+    "expected_output": "{\"host\": \"DB.INTERNAL\", \"user\": \"ANALYTICS\", \"port\": \"5432\"}",
+    "expected_output_type": "dict",
+    "hints": [
+      "Dict comprehension: {k: <transform(v)> for k, v in env.items()}.",
+      "Use the .upper() method on the values.",
+      "{k: v.upper() for k, v in env.items()}."
+    ],
+    "tags": ["dict-comprehension", "strings", "transform"],
+    "solution": "{k: v.upper() for k, v in env.items()}"
+  },
+  {
+    "id": "t2-dictcomp-filter-int",
+    "tier": 2,
+    "title": "Dict Comp — Keep Int Values",
+    "domain_context": "Extracting only numeric config knobs from a mixed dict",
+    "prompt": "Return a dict containing only the entries whose values are ints.",
+    "given_code": "",
+    "given_variables": "config = {'host': 'db.internal', 'port': 5432, 'user': 'analytics', 'retries': 3, 'timeout': 30}",
+    "expected_output": "{\"port\": 5432, \"retries\": 3, \"timeout\": 30}",
+    "expected_output_type": "dict",
+    "hints": [
+      "Dict comprehensions support an if clause after the for.",
+      "Use isinstance(v, int) as the predicate.",
+      "{k: v for k, v in config.items() if isinstance(v, int)}."
+    ],
+    "tags": ["dict-comprehension", "isinstance", "filtering"],
+    "solution": "{k: v for k, v in config.items() if isinstance(v, int)}"
+  },
+  {
+    "id": "t2-try-valueerror",
+    "tier": 2,
+    "title": "try/except ValueError — Safe int()",
+    "domain_context": "Parsing a user-supplied threshold with a fallback",
+    "prompt": "Try to parse raw as an int. On ValueError, fall back to -1. Assign to `result`.",
+    "given_code": "",
+    "given_variables": "raw = 'thirty'",
+    "expected_output": "-1",
+    "expected_output_type": "int",
+    "hints": [
+      "int('thirty') raises ValueError at runtime.",
+      "Wrap int(raw) in a try/except that catches ValueError.",
+      "In the except branch, set result = -1."
+    ],
+    "tags": ["try-except", "ValueError", "parsing"],
+    "solution": "try:\n    result = int(raw)\nexcept ValueError:\n    result = -1"
+  },
+  {
+    "id": "t2-try-keyerror",
+    "tier": 2,
+    "title": "try/except KeyError — Missing Field",
+    "domain_context": "Reading an optional field from an incomplete record",
+    "prompt": "Try to read record['email']. If it raises KeyError, assign 'missing' to `result` instead.",
+    "given_code": "",
+    "given_variables": "record = {'id': 1, 'name': 'alice'}",
+    "expected_output": "\"missing\"",
+    "expected_output_type": "str",
+    "hints": [
+      "Subscript lookups on a missing dict key raise KeyError.",
+      "Catch KeyError in an except clause.",
+      "Assign 'missing' to result in the except branch."
+    ],
+    "tags": ["try-except", "KeyError", "dict"],
+    "solution": "try:\n    result = record['email']\nexcept KeyError:\n    result = 'missing'"
+  },
+  {
+    "id": "t2-fstring-ternary-plural",
+    "tier": 2,
+    "title": "F-string + Ternary — Pluralize",
+    "domain_context": "Formatting a log message with proper pluralization",
+    "prompt": "Return a log line like '[ERROR] 5 issues' but use the singular 'issue' when count == 1. Use an f-string with a ternary inside.",
+    "given_code": "",
+    "given_variables": "level = 'ERROR'\ncount = 5",
+    "expected_output": "\"[ERROR] 5 issues\"",
+    "expected_output_type": "str",
+    "hints": [
+      "F-string braces can hold any expression, including ternary.",
+      "Ternary: 'issue' if count == 1 else 'issues'.",
+      "f\"[{level}] {count} {'issue' if count == 1 else 'issues'}\"."
+    ],
+    "tags": ["f-string", "ternary", "pluralization"],
+    "solution": "f\"[{level}] {count} {'issue' if count == 1 else 'issues'}\""
+  },
+  {
+    "id": "t2-re-findall-timestamps",
+    "tier": 2,
+    "title": "re.findall — Extract Timestamps",
+    "domain_context": "Pulling ISO timestamps out of a noisy log blob",
+    "prompt": "Return a list of all ISO timestamps (YYYY-MM-DDTHH:MM:SSZ) found in the log string.",
+    "given_code": "import re",
+    "given_variables": "log = 'ERROR 2026-04-10T10:30:01Z failed\\nINFO 2026-04-10T10:31:02Z ok\\nERROR 2026-04-10T10:32:05Z retry'",
+    "expected_output": "[\"2026-04-10T10:30:01Z\", \"2026-04-10T10:31:02Z\", \"2026-04-10T10:32:05Z\"]",
+    "expected_output_type": "list",
+    "hints": [
+      "re.findall(pattern, text) returns every non-overlapping match.",
+      "ISO timestamp pattern: r'\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z'.",
+      "re.findall(r'\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z', log)."
+    ],
+    "tags": ["regex", "findall", "logs"],
+    "solution": "re.findall(r'\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z', log)"
+  },
+  {
+    "id": "t2-datetime-reformat",
+    "tier": 2,
+    "title": "datetime strptime + strftime",
+    "domain_context": "Reformatting a date for a downstream consumer",
+    "prompt": "Parse raw_date as YYYY-MM-DD and return it formatted as DD/MM/YYYY.",
+    "given_code": "from datetime import datetime",
+    "given_variables": "raw_date = '2026-04-10'",
+    "expected_output": "\"10/04/2026\"",
+    "expected_output_type": "str",
+    "hints": [
+      "datetime.strptime(raw, format) parses a string into a datetime.",
+      ".strftime(format) formats it back to a string.",
+      "datetime.strptime(raw_date, '%Y-%m-%d').strftime('%d/%m/%Y')."
+    ],
+    "tags": ["datetime", "strptime", "strftime"],
+    "solution": "datetime.strptime(raw_date, '%Y-%m-%d').strftime('%d/%m/%Y')"
+  },
+  {
+    "id": "t2-itertools-chain",
+    "tier": 2,
+    "title": "itertools.chain — Flatten Lists",
+    "domain_context": "Flattening region-specific name lists into one feed",
+    "prompt": "Flatten the three lists into a single list in the order east, west, central.",
+    "given_code": "from itertools import chain",
+    "given_variables": "east = ['alice', 'bob']\nwest = ['carol', 'dave']\ncentral = ['eve']",
+    "expected_output": "[\"alice\", \"bob\", \"carol\", \"dave\", \"eve\"]",
+    "expected_output_type": "list",
+    "hints": [
+      "chain takes any number of iterables.",
+      "Wrap chain(...) in list() to materialize.",
+      "list(chain(east, west, central))."
+    ],
+    "tags": ["itertools", "chain", "flatten"],
+    "solution": "list(chain(east, west, central))"
+  },
+  {
+    "id": "t2-pathjoin-fstring",
+    "tier": 2,
+    "title": "os.path.join + F-string",
+    "domain_context": "Building a partitioned warehouse path",
+    "prompt": "Build the path '/data/warehouse/events/2026-04' by joining base, table, and a f-string that zero-pads the month.",
+    "given_code": "import os",
+    "given_variables": "base = '/data/warehouse'\nyear = 2026\nmonth = 4\ntable = 'events'",
+    "expected_output": "\"/data/warehouse/events/2026-04\"",
+    "expected_output_type": "str",
+    "hints": [
+      "os.path.join takes any number of path segments.",
+      "Use f'{year}-{month:02d}' to zero-pad a 1-digit month.",
+      "os.path.join(base, table, f'{year}-{month:02d}')."
+    ],
+    "tags": ["os.path", "f-string", "format-spec"],
+    "solution": "os.path.join(base, table, f'{year}-{month:02d}')"
+  },
+  {
+    "id": "t2-path-glob-json",
+    "tier": 2,
+    "title": "Path.glob — Find JSON Files",
+    "domain_context": "Discovering all JSON manifests in a drop directory",
+    "prompt": "Return a sorted list of just the filenames (not full paths) of every .json file under '/tmp/pp/p18_logs'.",
+    "given_code": "import os\nfrom pathlib import Path\nos.makedirs('/tmp/pp/p18_logs', exist_ok=True)\nfor name in ['app.json', 'audit.json', 'app.log', 'audit.log', 'raw.txt']:\n    open(f'/tmp/pp/p18_logs/{name}', 'w').close()",
+    "given_variables": "",
+    "expected_output": "[\"app.json\", \"audit.json\"]",
+    "expected_output_type": "list",
+    "hints": [
+      "Path(dir).glob('*.json') yields matching Path objects.",
+      "Each Path has a .name attribute.",
+      "sorted(p.name for p in Path('/tmp/pp/p18_logs').glob('*.json'))."
+    ],
+    "tags": ["pathlib", "glob", "filesystem"],
+    "solution": "sorted(p.name for p in Path('/tmp/pp/p18_logs').glob('*.json'))"
+  },
+  {
+    "id": "t2-walrus-comp",
+    "tier": 2,
+    "title": "Walrus Operator — Assign in Comprehension",
+    "domain_context": "Extracting optional timeouts while avoiding a double lookup",
+    "prompt": "Return a list of timeout values from configs that actually define one. Use the walrus operator (:=) inside the comprehension to avoid calling .get twice.",
+    "given_code": "",
+    "given_variables": "configs = [{'name': 'a'}, {'name': 'b', 'timeout': 30}, {'name': 'c', 'timeout': 60}]",
+    "expected_output": "[30, 60]",
+    "expected_output_type": "list",
+    "hints": [
+      "Walrus assigns and returns in one step: (t := c.get('timeout')).",
+      "Use it inside the if clause of a list comprehension.",
+      "[t for c in configs if (t := c.get('timeout')) is not None]."
+    ],
+    "tags": ["walrus", "list-comprehension", "dict"],
+    "solution": "[t for c in configs if (t := c.get('timeout')) is not None]"
+  },
+  {
+    "id": "t2-json-dumps-indent",
+    "tier": 2,
+    "title": "json.dumps — Pretty-printed List",
+    "domain_context": "Emitting a nicely formatted batch sizes block to a log",
+    "prompt": "Return json.dumps(counts, indent=2) as-is.",
+    "given_code": "import json",
+    "given_variables": "counts = [1, 2, 3]",
+    "expected_output": "\"[\\n  1,\\n  2,\\n  3\\n]\"",
+    "expected_output_type": "str",
+    "hints": [
+      "json.dumps accepts an indent keyword.",
+      "Integers avoid any need for quote escaping.",
+      "json.dumps(counts, indent=2)."
+    ],
+    "tags": ["json", "serialization", "format"],
+    "solution": "json.dumps(counts, indent=2)"
+  },
+  {
+    "id": "t2-dict-merge-star",
+    "tier": 2,
+    "title": "Dict Merge — ** Unpacking",
+    "domain_context": "Overlaying environment overrides onto a defaults dict",
+    "prompt": "Merge defaults with overrides so overrides win. Use ** unpacking in a dict literal.",
+    "given_code": "",
+    "given_variables": "defaults = {'timeout': 30, 'retries': 3, 'level': 'info'}\noverrides = {'timeout': 60}",
+    "expected_output": "{\"timeout\": 60, \"retries\": 3, \"level\": \"info\"}",
+    "expected_output_type": "dict",
+    "hints": [
+      "You can spread dicts into a new dict literal with **.",
+      "Later entries overwrite earlier ones.",
+      "{**defaults, **overrides}."
+    ],
+    "tags": ["dict", "unpacking", "merge"],
+    "solution": "{**defaults, **overrides}"
+  },
+  {
+    "id": "t2-enumerate-modulo",
+    "tier": 2,
+    "title": "enumerate + Modulo — Every Nth Batch",
+    "domain_context": "Running a smoke test on every third batch",
+    "prompt": "Return every 3rd batch (indices 0, 3, 6, ...).",
+    "given_code": "",
+    "given_variables": "batches = ['b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8']",
+    "expected_output": "[\"b1\", \"b4\", \"b7\"]",
+    "expected_output_type": "list",
+    "hints": [
+      "enumerate gives you (index, value) pairs.",
+      "Use i % 3 == 0 as the filter.",
+      "[b for i, b in enumerate(batches) if i % 3 == 0]."
+    ],
+    "tags": ["enumerate", "modulo", "filter"],
+    "solution": "[b for i, b in enumerate(batches) if i % 3 == 0]"
+  },
+  {
+    "id": "t2-reduce-sum",
+    "tier": 2,
+    "title": "functools.reduce — Running Total",
+    "domain_context": "Summing sale amounts without using sum()",
+    "prompt": "Use reduce to accumulate the total of all r['amount'] values. Start from 0.",
+    "given_code": "from functools import reduce",
+    "given_variables": "sales = [{'id': 1, 'amount': 100}, {'id': 2, 'amount': 250}, {'id': 3, 'amount': 75}]",
+    "expected_output": "425",
+    "expected_output_type": "int",
+    "hints": [
+      "reduce(func, iterable, initial) folds a sequence.",
+      "func takes (accumulator, current_item) and returns the new accumulator.",
+      "reduce(lambda acc, r: acc + r['amount'], sales, 0)."
+    ],
+    "tags": ["functools", "reduce", "lambda"],
+    "solution": "reduce(lambda acc, r: acc + r['amount'], sales, 0)"
+  },
+  {
+    "id": "t2-items-unpack",
+    "tier": 2,
+    "title": "dict.items() + Unpacking",
+    "domain_context": "Serializing a config dict into KEY=VALUE lines",
+    "prompt": "Return a list like ['host=db.internal', 'port=5432', 'user=analytics']. Iterate with .items() and unpack each pair.",
+    "given_code": "",
+    "given_variables": "config = {'host': 'db.internal', 'port': 5432, 'user': 'analytics'}",
+    "expected_output": "[\"host=db.internal\", \"port=5432\", \"user=analytics\"]",
+    "expected_output_type": "list",
+    "hints": [
+      "config.items() yields (key, value) pairs.",
+      "Unpack into k, v in the for clause.",
+      "[f'{k}={v}' for k, v in config.items()]."
+    ],
+    "tags": ["dict", "items", "unpacking"],
+    "solution": "[f'{k}={v}' for k, v in config.items()]"
+  },
+  {
+    "id": "t2-ordered-dict",
+    "tier": 2,
+    "title": "OrderedDict — Schema Order",
+    "domain_context": "Rebuilding a record in canonical schema order",
+    "prompt": "Build an OrderedDict that has the keys in schema_order, pulling each value from values. Assign to `result`.",
+    "given_code": "from collections import OrderedDict",
+    "given_variables": "schema_order = ['id', 'name', 'email', 'created_at']\nvalues = {'email': 'a@b.com', 'id': 1, 'name': 'alice', 'created_at': '2026-04-10'}",
+    "expected_output": "{\"id\": 1, \"name\": \"alice\", \"email\": \"a@b.com\", \"created_at\": \"2026-04-10\"}",
+    "expected_output_type": "dict",
+    "hints": [
+      "OrderedDict accepts an iterable of (key, value) pairs.",
+      "Build the pairs from schema_order via a generator expression.",
+      "result = OrderedDict((k, values[k]) for k in schema_order)."
+    ],
+    "tags": ["OrderedDict", "collections", "schema"],
+    "solution": "result = OrderedDict((k, values[k]) for k in schema_order)"
+  }
+]
