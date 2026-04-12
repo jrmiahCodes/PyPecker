@@ -36,14 +36,29 @@ def __pp_hydrate_expected(expected_json, expected_type):
         return tuple(parsed)
     return parsed
 
+__pp_baseline_keys__ = None
+
 def __pp_reset():
+    global __pp_baseline_keys__
     g = globals()
-    for name in ['result', '__result__', '__error__', '__actual_json__', '__expected_json__', '__correct__']:
+    # Remove internal vars
+    for name in ['result', '__result__', '__error__', '__actual_json__', '__expected_json__', '__correct__',
+                 '__actual_norm__', '__expected_norm__', '__pp_user_code__', '__pp_expected_output__', '__pp_expected_type__']:
         if name in g:
             try:
                 del g[name]
             except Exception:
                 pass
+    # Remove user-injected vars from previous puzzle (files, config, pairs, etc.)
+    if __pp_baseline_keys__ is not None:
+        added = set(g.keys()) - __pp_baseline_keys__
+        for name in added:
+            try:
+                del g[name]
+            except Exception:
+                pass
+    # Snapshot current keys as the clean baseline
+    __pp_baseline_keys__ = set(g.keys())
 `;
 
 async function initPyodide() {
@@ -170,8 +185,14 @@ if __error__ is None:
         __expected_json__ = json.dumps(__expected_norm__, sort_keys=True, default=str)
     except Exception:
         __correct__ = False
-        __actual_json__ = repr(__result__)
-        __expected_json__ = __pp_expected_output__
+        try:
+            __actual_json__ = json.dumps(__result__, sort_keys=True, default=str)
+        except Exception:
+            __actual_json__ = repr(__result__)
+        try:
+            __expected_json__ = json.dumps(json.loads(__pp_expected_output__), sort_keys=True, default=str)
+        except Exception:
+            __expected_json__ = __pp_expected_output__
 else:
     __correct__ = False
     __actual_json__ = ''
