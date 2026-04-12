@@ -60,6 +60,7 @@ export function TrainingSession({ setId }: TrainingSessionProps) {
   const [completedCycle, setCompletedCycle] = useState<CycleState | null>(null);
 
   const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const progressRef = useRef<SetProgress | null>(null);
 
   useEffect(() => {
     if (!meta) return;
@@ -83,6 +84,7 @@ export function TrainingSession({ setId }: TrainingSessionProps) {
     const existing = loadSetProgress(setId) ?? createEmptyProgress(setId);
     const withActive = ensureActiveCycle(existing);
     setProgress(withActive);
+    progressRef.current = withActive;
     if (withActive !== existing) saveSetProgress(withActive);
     setPuzzleStartedAt(Date.now());
   }, [setId, meta]);
@@ -138,12 +140,14 @@ export function TrainingSession({ setId }: TrainingSessionProps) {
 
   const persistProgress = useCallback((next: SetProgress) => {
     setProgress(next);
+    progressRef.current = next;
     saveSetProgress(next);
   }, []);
 
   const handleAdvance = useCallback(() => {
-    if (!progress || !puzzles) return;
-    const advanced = advanceToNextPuzzle(progress);
+    const latest = progressRef.current;
+    if (!latest || !puzzles) return;
+    const advanced = advanceToNextPuzzle(latest);
     if (advanced.currentPuzzleIndex >= puzzles.length) {
       const finished = completeCycle(advanced);
       persistProgress(finished);
@@ -152,7 +156,7 @@ export function TrainingSession({ setId }: TrainingSessionProps) {
     } else {
       persistProgress(advanced);
     }
-  }, [progress, puzzles, persistProgress]);
+  }, [puzzles, persistProgress]);
 
   const handleSubmit = useCallback(async () => {
     if (!currentPuzzle || !progress || isValidating || revealed) return;
