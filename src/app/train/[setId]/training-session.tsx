@@ -200,12 +200,7 @@ export function TrainingSession({ setId }: TrainingSessionProps) {
     handleAdvance,
   ]);
 
-  const handleHint = useCallback(() => {
-    if (!currentPuzzle) return;
-    setHintsShown((h) => Math.min(h + 1, currentPuzzle.hints.length));
-  }, [currentPuzzle]);
-
-  const handleShowAnswer = useCallback(() => {
+  const revealAnswer = useCallback(() => {
     if (!currentPuzzle || !progress || revealed) return;
     setRevealed(true);
     setValidationResult(null);
@@ -218,6 +213,19 @@ export function TrainingSession({ setId }: TrainingSessionProps) {
     });
     persistProgress(next);
   }, [currentPuzzle, progress, revealed, attempts, puzzleStartedAt, persistProgress]);
+
+  const handleHint = useCallback(() => {
+    if (!currentPuzzle || revealed) return;
+    const nextCount = hintsShown + 1;
+    if (nextCount >= currentPuzzle.hints.length) {
+      setHintsShown(currentPuzzle.hints.length);
+      revealAnswer();
+    } else {
+      setHintsShown(nextCount);
+    }
+  }, [currentPuzzle, revealed, hintsShown, revealAnswer]);
+
+  const handleShowAnswer = revealAnswer;
 
   const handleSkipForward = useCallback(() => {
     handleAdvance();
