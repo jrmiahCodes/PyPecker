@@ -339,6 +339,20 @@ export function TrainingSession({ setId }: TrainingSessionProps) {
     );
   }
 
+  if ((completedCycle || isCycleComplete) && progress) {
+    const cycle = completedCycle ?? currentCycle;
+    if (cycle) {
+      return (
+        <CycleCompleteView
+          cycle={cycle}
+          progress={progress}
+          puzzles={puzzles}
+          onStartNext={handleStartNextCycle}
+        />
+      );
+    }
+  }
+
   if (!puzzles || !progress || !currentCycle) {
     return (
       <main className="min-h-screen flex items-center justify-center px-6">
@@ -368,18 +382,6 @@ export function TrainingSession({ setId }: TrainingSessionProps) {
           )}
         </div>
       </main>
-    );
-  }
-
-  if (completedCycle || isCycleComplete) {
-    const cycle = completedCycle ?? currentCycle;
-    return (
-      <CycleCompleteView
-        cycle={cycle}
-        progress={progress}
-        puzzles={puzzles}
-        onStartNext={handleStartNextCycle}
-      />
     );
   }
 
