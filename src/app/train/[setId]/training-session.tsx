@@ -101,6 +101,12 @@ export function TrainingSession({ setId }: TrainingSessionProps) {
   }, []);
 
   useEffect(() => {
+    if (pyodideStatus === 'ready') {
+      setPuzzleStartedAt(Date.now());
+    }
+  }, [pyodideStatus]);
+
+  useEffect(() => {
     const id = setInterval(() => setNowMs(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
