@@ -3,6 +3,7 @@ import type { ExecutionResult, ValidationResult } from './types';
 export type PyodideStatus = 'idle' | 'loading' | 'ready' | 'error';
 
 const EXECUTION_TIMEOUT_MS = 10_000;
+const INIT_TIMEOUT_MS = 30_000;
 const WORKER_PATH = '/pyodide-worker.js';
 
 interface PendingRequest {
@@ -63,7 +64,7 @@ class PyodideClient {
         this.rejectAllPending(new Error(event.message || 'Pyodide worker error'));
       };
       this.worker = worker;
-      await this.sendRequest('init', {});
+      await this.sendRequest('init', {}, INIT_TIMEOUT_MS);
       this.setStatus('ready');
     } catch (err) {
       this.setStatus('error');
@@ -122,7 +123,7 @@ class PyodideClient {
       this.worker = null;
     }
     this.rejectAllPending(new Error('Worker terminated due to timeout'));
-    this.setStatus('idle');
+    this.setStatus('error');
     this.initPromise = null;
   }
 
