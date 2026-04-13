@@ -19,6 +19,9 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'PyPecker',
   description: 'Drill Python syntax patterns with the Woodpecker Method.',
+  other: {
+    'apple-mobile-web-app-title': 'PyPecker',
+  },
 };
 
 export default function RootLayout({
