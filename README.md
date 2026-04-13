@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="public/pypecker_logo.svg" alt="PyPecker" width="200" />
+</p>
+
 # PyPecker
 
 A browser-based Python syntax drill app inspired by the [Woodpecker Method](https://www.chessprogramming.org/Woodpecker_Method) from chess training.
