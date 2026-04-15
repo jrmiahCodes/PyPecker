@@ -79,6 +79,11 @@ self.onmessage = async (event) => {
       return;
     }
 
+    if (type === 'ping') {
+      self.postMessage({ type: 'pong', id });
+      return;
+    }
+
     if (!pyodide) {
       throw new Error('Pyodide is not initialized');
     }

@@ -37,8 +37,8 @@ export function SetSelector() {
             Drill Python patterns the Woodpecker way.
           </h1>
           <p className="text-fg-muted leading-relaxed max-w-2xl">
-            Solve a fixed set of syntax puzzles in cycles. Halve your time each
-            pass. After five to seven cycles, the patterns run on muscle memory.
+            Solve a fixed set of syntax puzzles in cycles. Beat your target time
+            each pass. After five to seven cycles, the patterns run on muscle memory.
           </p>
         </header>
 

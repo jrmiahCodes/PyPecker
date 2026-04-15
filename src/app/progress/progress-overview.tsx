@@ -10,18 +10,19 @@ import {
   getLatestCompletedCycle,
   isMastered,
 } from '@/lib/cycleTracker';
-import { PUZZLE_SETS } from '@/lib/puzzleEngine';
+import { loadPuzzleSet, PUZZLE_SETS } from '@/lib/puzzleEngine';
 import { loadSetProgress } from '@/lib/storage';
-import type { SetProgress } from '@/lib/types';
+import type { Puzzle, SetProgress } from '@/lib/types';
 
 interface SetEntry {
   meta: (typeof PUZZLE_SETS)[number];
   progress: SetProgress | null;
+  puzzles: Puzzle[] | null;
 }
 
 export function ProgressOverview() {
   const [entries, setEntries] = useState<SetEntry[]>(() =>
-    PUZZLE_SETS.map((meta) => ({ meta, progress: null })),
+    PUZZLE_SETS.map((meta) => ({ meta, progress: null, puzzles: null })),
   );
   const [hydrated, setHydrated] = useState(false);
 
@@ -29,18 +30,28 @@ export function ProgressOverview() {
     const next: SetEntry[] = PUZZLE_SETS.map((meta) => ({
       meta,
       progress: loadSetProgress(meta.id),
+      puzzles: null,
     }));
     setEntries(next);
     setHydrated(true);
+
+    // Load puzzles for floor-aware target calculations
+    Promise.all(
+      PUZZLE_SETS.map((meta) => loadPuzzleSet(meta.id).catch(() => null)),
+    ).then((results) => {
+      setEntries((prev) =>
+        prev.map((entry, i) => ({ ...entry, puzzles: results[i] })),
+      );
+    });
   }, []);
 
   const totals = entries.reduce(
-    (acc, { progress }) => {
+    (acc, { progress, puzzles }) => {
       if (!progress) return acc;
       const completed = getCompletedCycleCount(progress);
       acc.cycles += completed;
       if (completed > 0) acc.setsStarted += 1;
-      if (isMastered(progress)) acc.mastered += 1;
+      if (isMastered(progress, puzzles ?? undefined)) acc.mastered += 1;
       return acc;
     },
     { cycles: 0, setsStarted: 0, mastered: 0 },
@@ -64,8 +75,7 @@ export function ProgressOverview() {
           <h1 className="text-3xl font-semibold text-fg">Cycle history</h1>
           <p className="text-fg-muted leading-relaxed max-w-2xl">
             Track your times across every set. A set is mastered after five
-            cycles at 90% accuracy with the latest time near half of the one
-            before.
+            cycles at 90% accuracy with consistently improving times.
           </p>
         </header>
 
@@ -82,7 +92,7 @@ export function ProgressOverview() {
         )}
 
         <section className="space-y-5">
-          {entries.map(({ meta, progress }) => (
+          {entries.map(({ meta, progress, puzzles }) => (
             <div key={meta.id} className="space-y-3">
               <div className="flex items-baseline justify-between">
                 <Link
@@ -98,6 +108,7 @@ export function ProgressOverview() {
               <CycleHistory
                 progress={progress ?? emptyProgress(meta.id)}
                 meta={meta}
+                puzzles={puzzles ?? undefined}
               />
             </div>
           ))}

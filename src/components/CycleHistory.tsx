@@ -1,21 +1,22 @@
 'use client';
 
-import { formatDurationMs, isMastered } from '@/lib/cycleTracker';
+import { formatDurationMs, getTargetTime, isMastered } from '@/lib/cycleTracker';
 import type { PuzzleSetMeta } from '@/lib/puzzleEngine';
-import type { SetProgress } from '@/lib/types';
+import type { Puzzle, SetProgress } from '@/lib/types';
 
 interface CycleHistoryProps {
   progress: SetProgress;
   meta: PuzzleSetMeta;
+  puzzles?: Puzzle[];
 }
 
 const CHART_WIDTH = 600;
 const CHART_HEIGHT = 140;
 const CHART_PADDING = 24;
 
-export function CycleHistory({ progress, meta }: CycleHistoryProps) {
+export function CycleHistory({ progress, meta, puzzles }: CycleHistoryProps) {
   const completed = progress.cycles.filter((c) => c.completed);
-  const mastered = isMastered(progress);
+  const mastered = isMastered(progress, puzzles);
 
   if (completed.length === 0) {
     return (
@@ -45,7 +46,7 @@ export function CycleHistory({ progress, meta }: CycleHistoryProps) {
     .map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`)
     .join(' ');
 
-  const nextTarget = completed[completed.length - 1].totalTimeMs / 2;
+  const nextTarget = getTargetTime(progress, puzzles) ?? completed[completed.length - 1].totalTimeMs / 2;
   const targetY =
     CHART_HEIGHT -
     CHART_PADDING -

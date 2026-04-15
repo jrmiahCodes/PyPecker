@@ -1,4 +1,26 @@
-import type { CycleState, PuzzleResult, SetProgress } from './types';
+import type { CycleState, Puzzle, PuzzleResult, SetProgress } from './types';
+
+/**
+ * Typing-floor constants.
+ * At CODE_WPM words-per-minute (where a "word" is CODE_CHARS_PER_WORD chars),
+ * each puzzle has a minimum solve time equal to its solution length in
+ * characters divided by the effective chars-per-second rate. The cycle target
+ * never drops below the sum of those per-puzzle floors.
+ */
+const CODE_WPM = 50;
+const CODE_CHARS_PER_WORD = 5;
+const CHARS_PER_SECOND = (CODE_WPM * CODE_CHARS_PER_WORD) / 60; // ≈ 4.17 cps
+
+/** Minimum solve time (ms) for a single puzzle based on solution length. */
+export function puzzleTypingFloorMs(puzzle: Puzzle): number {
+  const chars = puzzle.solution.length;
+  return Math.round((chars / CHARS_PER_SECOND) * 1000);
+}
+
+/** Sum of per-puzzle typing floors for an entire set. */
+export function setTypingFloorMs(puzzles: Puzzle[]): number {
+  return puzzles.reduce((sum, p) => sum + puzzleTypingFloorMs(p), 0);
+}
 
 export function createEmptyProgress(setId: string): SetProgress {
   return {
@@ -29,9 +51,13 @@ export function getCompletedCycleCount(progress: SetProgress): number {
   return getCompletedCycles(progress).length;
 }
 
-export function getTargetTime(progress: SetProgress): number | null {
+export function getTargetTime(progress: SetProgress, puzzles?: Puzzle[]): number | null {
   const last = getLatestCompletedCycle(progress);
-  return last ? Math.round(last.totalTimeMs / 2) : null;
+  if (!last) return null;
+  const halved = Math.round(last.totalTimeMs / 2);
+  if (!puzzles || puzzles.length === 0) return halved;
+  const floor = setTypingFloorMs(puzzles);
+  return Math.max(halved, floor);
 }
 
 export function getBestCycleTime(progress: SetProgress): number | null {
@@ -80,6 +106,7 @@ export function getWeakestResults(cycle: CycleState, limit = 5): PuzzleResult[] 
 
 export function isMastered(
   progress: SetProgress,
+  puzzles?: Puzzle[],
   minCycles = 5,
   minAccuracy = 0.9,
 ): boolean {
@@ -89,7 +116,9 @@ export function isMastered(
 
   const prev = completed[completed.length - 2];
   const latest = completed[completed.length - 1];
-  const target = prev.totalTimeMs / 2;
+  const halved = prev.totalTimeMs / 2;
+  const floor = puzzles?.length ? setTypingFloorMs(puzzles) : 0;
+  const target = Math.max(halved, floor);
   return latest.totalTimeMs <= target * 1.1;
 }
 

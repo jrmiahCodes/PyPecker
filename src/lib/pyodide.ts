@@ -44,7 +44,22 @@ class PyodideClient {
   }
 
   async init(): Promise<void> {
-    if (this.status === 'ready') return;
+    if (this.status === 'ready') {
+      // Worker may have been suspended by the browser during inactivity.
+      // Fire a lightweight ping to verify it's still responsive.
+      try {
+        await this.sendRequest('ping', {}, 3_000);
+      } catch {
+        // Worker is dead — tear down and re-init from scratch.
+        if (this.worker) {
+          this.worker.terminate();
+          this.worker = null;
+        }
+        this.setStatus('idle');
+        this.initPromise = null;
+      }
+      if (this.status === 'ready') return;
+    }
     if (this.initPromise) return this.initPromise;
     if (typeof window === 'undefined') {
       throw new Error('Pyodide can only be initialized in the browser');

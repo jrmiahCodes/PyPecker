@@ -28,6 +28,7 @@ import {
   validateSolution,
 } from '@/lib/puzzleEngine';
 import {
+  getPyodideStatus,
   initPyodide,
   onPyodideStatusChange,
   type PyodideStatus,
@@ -91,7 +92,9 @@ export function TrainingSession({ setId }: TrainingSessionProps) {
 
   useEffect(() => {
     const unsubscribe = onPyodideStatusChange(setPyodideStatus);
-    setPyodideStatus('loading');
+    // Sync with current singleton status before calling init, so we don't
+    // get stuck showing 'loading' when the worker is already ready.
+    setPyodideStatus(getPyodideStatus());
     initPyodide().catch((err) => {
       console.error('[pypecker] failed to initialize pyodide', err);
     });
@@ -133,7 +136,7 @@ export function TrainingSession({ setId }: TrainingSessionProps) {
 
   const elapsedThisPuzzleMs = nowMs - puzzleStartedAt;
   const totalElapsedMs = (currentCycle?.totalTimeMs ?? 0) + (currentPuzzle ? elapsedThisPuzzleMs : 0);
-  const targetMs = progress ? getTargetTime(progress) : null;
+  const targetMs = progress ? getTargetTime(progress, puzzles ?? undefined) : null;
 
   useEffect(() => {
     setUserCode('');
@@ -561,9 +564,21 @@ function CycleCompleteView({ cycle, progress, puzzles, onStartNext }: CycleCompl
     if (currentIdx <= 0) return null;
     return completed[currentIdx - 1];
   })();
-  const latest = getLatestCompletedCycle(progress);
-  const nextTarget = latest ? Math.round(latest.totalTimeMs / 2) : null;
-  const previousTarget = previousCycle ? Math.round(previousCycle.totalTimeMs / 2) : null;
+
+  // Build a temporary progress ending at the *previous* cycle to compute its
+  // floor-aware target (i.e. the target this cycle was aiming for).
+  const previousTarget = (() => {
+    if (!previousCycle) return null;
+    const upToPrev: SetProgress = {
+      ...progress,
+      cycles: progress.cycles.filter(
+        (c) => c.completed && c.cycleNumber <= previousCycle.cycleNumber,
+      ),
+    };
+    return getTargetTime(upToPrev, puzzles ?? undefined);
+  })();
+
+  const nextTarget = getTargetTime(progress, puzzles ?? undefined);
   const beatTarget =
     previousTarget !== null ? cycle.totalTimeMs <= previousTarget : null;
   const deltaVsPrevious = previousCycle ? cycle.totalTimeMs - previousCycle.totalTimeMs : null;
@@ -612,7 +627,7 @@ function CycleCompleteView({ cycle, progress, puzzles, onStartNext }: CycleCompl
           )}
           {previousTarget !== null && (
             <div className="flex justify-between text-fg-muted">
-              <span>Target (½ previous)</span>
+              <span>Target</span>
               <span>{formatDurationMs(previousTarget)}</span>
             </div>
           )}
